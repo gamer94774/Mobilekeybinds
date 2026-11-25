@@ -16,6 +16,8 @@ jobs:
 
       - name: Build the mod
         uses: geode-sdk/build-geode-mod@main
+        with:
+        sdk: latest
         id: build
         with:
           target: Android64
