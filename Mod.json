@@ -1,0 +1,31 @@
+{
+  "geode": "v6.0.0",
+  "gd": {
+    "android": "2.2091"
+  },
+  "id": "gamer94774.mobilekeybinds",
+  "name": "Mobile Keybinds",
+  "version": "v1.0.0",
+  "developer": "gamer94774",
+  "description": "Custom Android keyboard controls for Geometry Dash",
+  "settings": {
+    "p1-jump": {
+      "name": "Player 1",
+      "type": "keybind",
+      "default": "C",
+      "category": "gameplay"
+    },
+    "p2-jump": {
+      "name": "Player 2",
+      "type": "keybind",
+      "default": "Z",
+      "category": "gameplay"
+    },
+    "place-checkpoint": {
+      "name": "Place Checkpoint",
+      "type": "keybind",
+      "default": "X",
+      "category": "gameplay"
+    }
+  }
+}
