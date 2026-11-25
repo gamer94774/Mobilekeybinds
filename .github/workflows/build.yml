@@ -1,9 +1,27 @@
-name: Test Workflow
 
-on: push
+name: Build Android Mod
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - "**"
 
 jobs:
-  test:
+  build:
     runs-on: ubuntu-latest
+
     steps:
-      - run: echo "GitHub Actions works!"
+      - uses: actions/checkout@v7
+
+      - name: Build the mod
+        uses: geode-sdk/build-geode-mod@main
+        id: build
+        with:
+          target: Android64
+
+      - name: Upload the mod
+        uses: actions/upload-artifact@v7
+        with:
+          name: Mobile-Keybinds
+          path: ${{ steps.build.outputs.build-output }}
