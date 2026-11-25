@@ -1,33 +1,42 @@
 
 #include <Geode/Geode.hpp>
-#include <Geode/loader/GameEvent.hpp>
-#include <Geode/loader/SettingV3.hpp>
-#include <Geode/binding/PlayLayer.hpp>
+#include <Geode/modify/PlayLayer.hpp>
 
 using namespace geode::prelude;
 
-$on_game(Loaded) {
-    listenForKeybindSettingPresses("p1-jump",
-        [](Keybind const&, bool down, bool repeat, double timestamp) {
-            if (repeat) return;
-            if (auto* layer = PlayLayer::get()) {
-                layer->queueButton(
-                    static_cast<int>(PlayerButton::Jump),
-                    down, true, timestamp
-                );
-            }
-        }
-    );
+class $modify(MobileKeybindsPlayLayer, PlayLayer) {
+    bool init(GJGameLevel* level, bool dontCreateObjects) {
+        if (!PlayLayer::init(level, dontCreateObjects))
+            return false;
 
-    listenForKeybindSettingPresses("p2-jump",
-        [](Keybind const&, bool down, bool repeat, double timestamp) {
-            if (repeat) return;
-            if (auto* layer = PlayLayer::get()) {
-                layer->queueButton(
+        this->addEventListener(
+            KeybindSettingPressedEventV3(Mod::get(), "p1-jump"),
+            [this](Keybind const&, bool down, bool repeat, double timestamp) {
+                if (repeat) return ListenerResult::Propagate;
+
+                this->queueButton(
                     static_cast<int>(PlayerButton::Jump),
                     down, false, timestamp
                 );
+
+                return ListenerResult::Propagate;
             }
-        }
-    );
-}
+        );
+
+        this->addEventListener(
+            KeybindSettingPressedEventV3(Mod::get(), "p2-jump"),
+            [this](Keybind const&, bool down, bool repeat, double timestamp) {
+                if (repeat) return ListenerResult::Propagate;
+
+                this->queueButton(
+                    static_cast<int>(PlayerButton::Jump),
+                    down, true, timestamp
+                );
+
+                return ListenerResult::Propagate;
+            }
+        );
+
+        return true;
+    }
+};
