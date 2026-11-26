@@ -27,7 +27,9 @@ jobs:
           BUILD_OUTPUT: ${{ steps.build.outputs.build-output }}
         run: |
           python3 - <<'PY'
-          import json, os, zipfile
+          import json
+          import os
+          import zipfile
           from pathlib import Path
 
           for package in Path(os.environ["BUILD_OUTPUT"]).glob("*.geode"):
@@ -35,6 +37,7 @@ jobs:
                   files = [(info, src.read(info.filename)) for info in src.infolist()]
 
               temp = package.with_suffix(".tmp")
+
               with zipfile.ZipFile(temp, "w") as dst:
                   for info, data in files:
                       if info.filename == "mod.json":
@@ -44,6 +47,41 @@ jobs:
                       dst.writestr(info, data)
 
               temp.replace(package)
+          PY
+
+      - name: Validate mod package
+        shell: bash
+        env:
+          BUILD_OUTPUT: ${{ steps.build.outputs.build-output }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          import zipfile
+          from pathlib import Path
+
+          packages = list(Path(os.environ["BUILD_OUTPUT"]).glob("*.geode"))
+          assert packages, "No .geode package found!"
+
+          for package in packages:
+              print(f"Checking {package.name}")
+
+              with zipfile.ZipFile(package, "r") as archive:
+                  assert archive.testzip() is None, "Corrupt ZIP archive!"
+
+                  metadata = json.loads(archive.read("mod.json"))
+                  assert metadata["geode"] == "v6.0.0", "Wrong Geode version!"
+                  assert metadata["gd"]["android"] == "2.2091", "Wrong GD version!"
+                  assert metadata["id"] == "gamer94774.mobilekeybinds", "Wrong mod ID!"
+
+                  binary_name = metadata["id"] + ".android64.so"
+                  assert binary_name in archive.namelist(), "Android binary missing!"
+
+                  binary = archive.read(binary_name)
+                  assert binary[:4] == b"\x7fELF", "Invalid Android binary!"
+
+              print("Package validation successful!")
+
           PY
 
       - name: Upload the mod
