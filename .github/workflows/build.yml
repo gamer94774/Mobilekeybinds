@@ -21,6 +21,31 @@ jobs:
           sdk: latest
           target: Android64
 
+      - name: Fix Geode version metadata
+        shell: bash
+        env:
+          BUILD_OUTPUT: ${{ steps.build.outputs.build-output }}
+        run: |
+          python3 - <<'PY'
+          import json, os, zipfile
+          from pathlib import Path
+
+          for package in Path(os.environ["BUILD_OUTPUT"]).glob("*.geode"):
+              with zipfile.ZipFile(package, "r") as src:
+                  files = [(info, src.read(info.filename)) for info in src.infolist()]
+
+              temp = package.with_suffix(".tmp")
+              with zipfile.ZipFile(temp, "w") as dst:
+                  for info, data in files:
+                      if info.filename == "mod.json":
+                          metadata = json.loads(data)
+                          metadata["geode"] = "v6.0.0"
+                          data = json.dumps(metadata, indent=2).encode()
+                      dst.writestr(info, data)
+
+              temp.replace(package)
+          PY
+
       - name: Upload the mod
         uses: actions/upload-artifact@v7
         with:
